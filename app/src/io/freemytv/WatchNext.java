@@ -31,7 +31,7 @@ final class WatchNext {
     static final int PER_APP = 2, MAX = 12;
     /** Channel names that mean "continue watching" (apps name their own channel). */
     private static final Set<String> CHANNEL_NAMES = new HashSet<>(java.util.Arrays.asList(
-            "continue watching", "seguir viendo", "continuar viendo", "continuar assistindo", "continue assistindo"));
+            "continue watching", "seguir viendo", "continuar viendo", "continuar assistindo", "continue assistindo", "continuar a ver"));
 
     static final class Item {
         String pkg, title, episode;     // episode: "S2 E5" (in the TV's language) or the episode's title, or null
@@ -47,7 +47,9 @@ final class WatchNext {
             picture = thumbnail != null ? thumbnail : poster;
             Uri uri = picture == null ? null : Uri.parse(picture);
             pictureUri = uri != null && ("content".equalsIgnoreCase(uri.getScheme())
-                    || "android.resource".equalsIgnoreCase(uri.getScheme())) ? uri : null;
+                    || "android.resource".equalsIgnoreCase(uri.getScheme())
+                    || "http".equalsIgnoreCase(uri.getScheme())
+                    || "https".equalsIgnoreCase(uri.getScheme())) ? uri : null;
             pictureKey = pictureUri == null ? null : picture;
             bannerKey = "banner:" + pkg;
         }
@@ -77,9 +79,23 @@ final class WatchNext {
     static List<Item> load(Context c) {
         if (!allowed(c)) return Collections.emptyList();
         ContentResolver cr = c.getContentResolver();
+        try {
+            android.content.Intent ping = new android.content.Intent("android.media.tv.action.INITIALIZE_PROGRAMS");
+            ping.setPackage("com.nuvio.tv");
+            c.sendBroadcast(ping);
+        } catch (Throwable ignored) {}
         List<Item> all = new ArrayList<>(read(cr, TvContract.WatchNextPrograms.CONTENT_URI));
         for (long channel : continueChannels(cr, c.getPackageName())) {
             all.addAll(read(cr, TvContract.buildPreviewProgramsUriForChannel(channel)));
+        }
+        boolean hasNuvio = false;
+        for (Item it : all) {
+            if ("com.nuvio.tv".equals(it.pkg)) { hasNuvio = true; break; }
+        }
+        if (!hasNuvio) {
+            try {
+                all.addAll(read(cr, Uri.parse("content://android.media.tv/preview_program")));
+            } catch (Throwable ignored) {}
         }
         Set<String> off = Prefs.watchOff(), hidden = Prefs.watchHidden();
         for (java.util.Iterator<Item> i = all.iterator(); i.hasNext(); ) {
@@ -178,8 +194,11 @@ final class WatchNext {
             int pkg = cur.getColumnIndex(TvContract.Channels.COLUMN_PACKAGE_NAME);
             while (cur.moveToNext()) {
                 String n = name < 0 ? null : cur.getString(name), p = pkg < 0 ? null : cur.getString(pkg);
-                if (n != null && CHANNEL_NAMES.contains(n.trim().toLowerCase(Locale.ROOT)) && !self.equals(p)) {
-                    ids.add(cur.getLong(id));
+                if (!self.equals(p) && p != null) {
+                    boolean isNuvio = "com.nuvio.tv".equals(p);
+                    String lower = n != null ? n.trim().toLowerCase(Locale.ROOT) : "";
+                    boolean isCw = isNuvio || CHANNEL_NAMES.contains(lower) || lower.contains("continuar") || lower.contains("continue");
+                    if (isCw) ids.add(cur.getLong(id));
                 }
             }
         } catch (RuntimeException e) {
@@ -201,10 +220,9 @@ final class WatchNext {
                 TvContract.WatchNextPrograms.COLUMN_LAST_PLAYBACK_POSITION_MILLIS,
                 TvContract.WatchNextPrograms.COLUMN_POSTER_ART_URI,
                 TvContract.WatchNextPrograms.COLUMN_THUMBNAIL_URI,
-                TvContract.WatchNextPrograms.COLUMN_INTENT_URI));
-        // Preview programs have no engagement time or Watch Next type.
+                TvContract.WatchNextPrograms.COLUMN_INTENT_URI,
+                TvContract.WatchNextPrograms.COLUMN_LAST_ENGAGEMENT_TIME_UTC_MILLIS));
         if (TvContract.WatchNextPrograms.CONTENT_URI.equals(uri)) {
-            projection.add(TvContract.WatchNextPrograms.COLUMN_LAST_ENGAGEMENT_TIME_UTC_MILLIS);
             projection.add(TvContract.WatchNextPrograms.COLUMN_WATCH_NEXT_TYPE);
         }
         try (Cursor cur = cr.query(uri, projection.toArray(new String[0]), null, null, null)) {
@@ -230,6 +248,7 @@ final class WatchNext {
                 it.duration = number(cur, TvContract.WatchNextPrograms.COLUMN_DURATION_MILLIS);
                 it.position = number(cur, TvContract.WatchNextPrograms.COLUMN_LAST_PLAYBACK_POSITION_MILLIS);
                 it.engaged = number(cur, TvContract.WatchNextPrograms.COLUMN_LAST_ENGAGEMENT_TIME_UTC_MILLIS);
+                if (it.engaged <= 0) it.engaged = it.position;
                 it.intent = text(cur, TvContract.WatchNextPrograms.COLUMN_INTENT_URI);
                 out.add(it);
             }

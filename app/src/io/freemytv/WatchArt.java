@@ -231,6 +231,15 @@ final class WatchArt {
 
     /** Only content:// and android.resource:// get here (checked when the item is read). */
     private byte[] read(Uri uri) throws IOException {
+        String scheme = uri.getScheme();
+        if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(uri.toString()).openConnection();
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(10000);
+            try (InputStream in = conn.getInputStream()) {
+                return readAll(in);
+            }
+        }
         try (InputStream in = app.getContentResolver().openInputStream(uri)) {
             if (in == null) throw new IOException("no picture there");
             return readAll(in);
