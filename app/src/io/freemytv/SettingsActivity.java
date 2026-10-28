@@ -150,7 +150,7 @@ public class SettingsActivity extends Activity {
 
     static final class SettingsView extends View implements Choreographer.FrameCallback {
         private static final int MAIN = 0, HOME_CHOICE = 1, HOME_SETTINGS = 2, REMOTE_KEYS = 3, PICKER = 4, SHELF_EDIT = 5,
-                POWER = 6, TMDB_KEY = 7, PICKS = 8, PICK_FROM = 9, WATCH_APPS = 10;
+                POWER = 6, TMDB_KEY = 7, PICKS = 8, PICK_FROM = 9, WATCH_APPS = 10, PICK_TABS = 11;
         private static final float LIST_ROW_H = 68, LIST_ROW_GAP = 6;
         private static final int PICK_VISIBLE = 9;
         private static final float LIST_X = 1000, LIST_R = 1824, LIST_TOP = 186, ROW_GAP = 8, CHOICE_H = 104;
@@ -169,7 +169,7 @@ public class SettingsActivity extends Activity {
         // The shelf editor (also the top buttons' one, with editingTop): what it can hold (selected ones first, in
         // order) and the selection.
         private final List<String[]> shelfRows = new ArrayList<>();
-        private boolean someServicesOff;   // is a streaming service on the TV switched off in Picks from (counted when the screen opens)
+        private boolean someServicesOff, someTabsOff;   // is a streaming service on the TV switched off in Picks from (counted when the screen opens)
         private final List<String[]> services = new ArrayList<>();   // {key, name} of the streaming services on the TV (Picks from)
         private final List<String> shelfOrder = new ArrayList<>();
         private boolean editingTop;
@@ -473,6 +473,7 @@ public class SettingsActivity extends Activity {
                 case PICKS: return picksLabels().length;
                 case PICK_FROM: return Math.min(PICK_VISIBLE, services.size());
                 case WATCH_APPS: return Math.min(PICK_VISIBLE, listSize());
+                case PICK_TABS: return Math.min(PICK_VISIBLE, Prefs.ALL_TABS.length);
                 default: return Prefs.KEYS.length;
             }
         }
@@ -505,6 +506,7 @@ public class SettingsActivity extends Activity {
             else if (screen == TMDB_KEY) drawKey(c);
             else if (screen == PICK_FROM) drawServices(c);
             else if (screen == WATCH_APPS) drawWatchApps(c);
+            else if (screen == PICK_TABS) drawTabs(c);
             else drawList(c);
         }
 
@@ -779,6 +781,11 @@ public class SettingsActivity extends Activity {
                                 focus = WATCH_ROW;   // on the list's first screen
                                 pickScroll = 0;
                                 screen = HOME_SETTINGS;
+                            } else if (screen == PICK_TABS) {
+                                countTabsOff();
+                                pickScroll = 0;
+                                focus = 2;
+                                screen = PICKS;
                             } else {
                                 focus = screen == HOME_SETTINGS ? 2 : screen == SHELF_EDIT ? (editingTop ? 4 : 3)
                                         : screen == REMOTE_KEYS ? 5 : screen == POWER ? 6 : 0;
@@ -851,11 +858,13 @@ public class SettingsActivity extends Activity {
         }
 
         private String[] picksLabels() {
-            return new String[] {Ui.tr("Picks per tab"), Ui.tr("Picks from")};
+            return new String[] {Ui.tr("Picks per tab"), Ui.tr("Picks from"), Ui.tr("Tabs")};
         }
 
         private String[] picksValues() {
-            return new String[] {String.valueOf(Prefs.cards()), someServicesOff ? Ui.tr("services|Some") : Ui.tr("services|All")};
+            return new String[] {String.valueOf(Prefs.cards()),
+                    someServicesOff ? Ui.tr("services|Some") : Ui.tr("services|All"),
+                    someTabsOff ? Ui.tr("services|Some") : Ui.tr("services|All")};
         }
 
         private String[] settingValues() {
@@ -1849,6 +1858,59 @@ public class SettingsActivity extends Activity {
         }
 
         /** "Some" only when one of the services the TV has is off (a service it doesn't have, or a typo in hide_services, doesn't count). */
+
+        private void countTabsOff() {
+            someTabsOff = false;
+            for (String key : Prefs.ALL_TABS) someTabsOff |= Prefs.tabOff(key);
+        }
+
+        private void toggleTab() {
+            int at = pickScroll + focus;
+            if (at >= Prefs.ALL_TABS.length) return;
+            String key = Prefs.ALL_TABS[at];
+            boolean willBeOff = !Prefs.tabOff(key);
+            if (willBeOff) {
+                int activeCount = 0;
+                for (String k : Prefs.ALL_TABS) if (!Prefs.tabOff(k)) activeCount++;
+                if (activeCount <= 1) return;
+            }
+            Prefs.setTabOff(key, willBeOff);
+            countTabsOff();
+        }
+
+        private static String tabDisplayName(String key) {
+            switch (key) {
+                case "explore": return Ui.tr("Explore");
+                case "movie": return Ui.tr("Movies");
+                case "tv": return Ui.tr("Shows");
+                case "anime": return Ui.tr("Animes");
+                case "kids": return Ui.tr("Kids");
+                case "docs": return Ui.tr("Documentaries");
+                default: return key;
+            }
+        }
+
+        private void drawTabs(Canvas c) {
+            Paint heading = Ui.text(Ui.displaySemibold, 34 * k, 0xFFFFFFFF);
+            c.drawText(Ui.tr("Tabs"), LIST_X * k + 30 * k, (LIST_TOP - 24) * k, heading);
+            int rows = Math.min(PICK_VISIBLE, Prefs.ALL_TABS.length);
+            for (int i = 0; i < rows; i++) {
+                float y = (LIST_TOP + 20 + i * (LIST_ROW_H + LIST_ROW_GAP)) * k;
+                rowRect.set(LIST_X * k, y, LIST_R * k, y + LIST_ROW_H * k);
+                float f = drawRowBackground(c, i);
+                rowLabel.setColor(blend(0xF2FFFFFF, INK, f));
+                rowValue.setColor(blend(0xB3FFFFFF, 0xB31C1C1E, f));
+                float base = rowRect.centerY() + Ui.halfCap(rowLabel);
+                String key = Prefs.ALL_TABS[pickScroll + i];
+                c.drawText(tabDisplayName(key), rowRect.left + 30 * k, base, rowLabel);
+                c.drawText(onOff(!Prefs.tabOff(key)), rowRect.right - 30 * k, base, rowValue);
+            }
+            Paint hint = Ui.text(Ui.regular, 23 * k, 0x8CFFFFFF);
+            float hy = (LIST_TOP + 20 + rows * (LIST_ROW_H + LIST_ROW_GAP) + 36) * k;
+            c.drawText(Ui.tr("Tabs that are off are hidden from the top bar."),
+                    LIST_X * k + 30 * k, hy, hint);
+        }
+
         private void countServicesOff() {
             someServicesOff = false;
             for (String[] service : Recs.installedServices(getContext())) someServicesOff |= Prefs.serviceOff(service[0]);
@@ -2011,6 +2073,7 @@ public class SettingsActivity extends Activity {
                 return;
             } else if (screen == HOME_SETTINGS && pickScroll + focus == PICKS_ROW) {
                 countServicesOff();
+                countTabsOff();
                 screen = PICKS;
                 pickScroll = 0;   // this list is short: it draws from row 0
                 focus = 0;
@@ -2020,6 +2083,15 @@ public class SettingsActivity extends Activity {
                 screen = PICK_FROM;
                 pickScroll = 0;
                 focus = 0;
+            } else if (screen == PICKS && focus == 2) {
+                countTabsOff();
+                screen = PICK_TABS;
+                pickScroll = 0;
+                focus = 0;
+            } else if (screen == PICK_TABS) {
+                toggleTab();
+                invalidate();
+                return;
             } else if (screen == PICK_FROM) {
                 toggleService();
                 invalidate();
