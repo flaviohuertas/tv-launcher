@@ -134,12 +134,17 @@ final class Prefs {
 
     static void setTemperature(String v) { put("temperature", v); }
 
-    /** Picks per tab on the home screen: 3 (as it always was) up to Recs.MAX_CARDS. */
+    /** Picks per tab on the home screen: 3 up to Recs.MAX_CARDS (default 20). */
     static int cards() {
-        return Math.max(3, Math.min(Recs.MAX_CARDS, sp().getInt("cards", 3)));
+        int c = sp().getInt("cards", 20);
+        if (c < 20 && !sp().contains("cards_explicit")) return 20;
+        return Math.max(3, Math.min(Recs.MAX_CARDS, c));
     }
 
-    static void setCards(int n) { put("cards", n); }
+    static void setCards(int n) {
+        put("cards_explicit", true);
+        put("cards", n);
+    }
 
     // MARK: - Picks from
 
@@ -173,6 +178,39 @@ final class Prefs {
         list = off ? (serviceOff(key) ? list : list + key + ",") : list.replace("," + key + ",", ",");
         put("servicesOff", list.length() > 1 ? list.substring(1, list.length() - 1) : "");
     }
+    // MARK: - Tabs
+
+    static final String[] ALL_TABS = {"explore", "movie", "tv", "anime", "kids", "docs"};
+    private static String offTabsList;
+    private static int offTabsListAt = -1;
+
+    private static String offTabs() {
+        if (offTabsList == null || offTabsListAt != version) {
+            String saved = sp().getString("tabsOff", null);
+            if (saved == null) {
+                StringBuilder first = new StringBuilder();
+                for (String key : Config.HIDE_TABS.split(",")) {
+                    key = key.trim().toLowerCase(Locale.ROOT);
+                    if (!key.isEmpty()) first.append(first.length() > 0 ? "," : "").append(key);
+                }
+                saved = first.toString();
+            }
+            offTabsList = saved.isEmpty() ? "," : "," + saved + ",";
+            offTabsListAt = version;
+        }
+        return offTabsList;
+    }
+
+    static boolean tabOff(String key) {
+        return key != null && offTabs().contains("," + key + ",");
+    }
+
+    static void setTabOff(String key, boolean off) {
+        String list = offTabs();
+        list = off ? (tabOff(key) ? list : list + key + ",") : list.replace("," + key + ",", ",");
+        put("tabsOff", list.length() > 1 ? list.substring(1, list.length() - 1) : "");
+    }
+
 
     /** "auto" (dark from sunset to sunrise), "light" or "dark". */
     static String theme() {

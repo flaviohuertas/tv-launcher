@@ -55,7 +55,7 @@ import java.util.regex.Pattern;
 final class HomeApps {
     private HomeApps() {}
 
-    static final int APP = 0, LIVE_TV = 1, INPUT = 2, ALL_APPS = 3, SETTINGS = 4, ANDROID_SETTINGS = 5, DEVICE = 6;
+    static final int APP = 0, LIVE_TV = 1, INPUT = 2, ALL_APPS = 3, SETTINGS = 4, ANDROID_SETTINGS = 5, DEVICE = 6, SEARCH = 8;
     /** The "HDMI Inputs" button: opens the bottom drawer on the inputs (the home screen handles it). */
     static final int INPUTS = 7;
     /** Image size of each card (16:9; on screen it shows up to ~330 px wide). */
@@ -241,8 +241,8 @@ final class HomeApps {
 
     // MARK: - Top buttons (the round ones at the top right)
 
-    static final String TOP_LIVE = "live", TOP_INPUTS = "inputs", TOP_SETTINGS = "settings";
-    static final List<String> TOP_DEFAULT = Collections.unmodifiableList(java.util.Arrays.asList(TOP_LIVE, TOP_INPUTS, TOP_SETTINGS));
+    static final String TOP_SEARCH = "search", TOP_LIVE = "live", TOP_INPUTS = "inputs", TOP_SETTINGS = "settings";
+    static final List<String> TOP_DEFAULT = Collections.unmodifiableList(java.util.Arrays.asList(TOP_SEARCH, TOP_LIVE, TOP_INPUTS, TOP_SETTINGS));
     static final int MAX_TOP = TOP_DEFAULT.size();
 
     /** The keys of the top buttons, in order (Settings > Top Buttons; by default Live TV, HDMI Inputs, Settings). */
@@ -263,6 +263,7 @@ final class HomeApps {
 
     private static Item topButton(String key) {
         switch (key) {
+            case TOP_SEARCH: return action(SEARCH, TOP_SEARCH, Ui.tr("Search"), "search");
             case TOP_LIVE: return action(LIVE_TV, TOP_LIVE, Ui.tr("light|Live TV"), "live_tv");
             case TOP_INPUTS: return action(INPUTS, TOP_INPUTS, Ui.tr("HDMI Inputs"), "hdmi");
             default: return action(SETTINGS, TOP_SETTINGS, Ui.tr("light|Settings"), "settings");
@@ -550,6 +551,20 @@ final class HomeApps {
         Intent intent, plain = null;   // plain: the app's own home, when it won't take the title's address
         switch (it.kind) {
             case APP:
+                if ("com.nuvio.tv".equals(it.pkg) && it.uri != null && it.uri.startsWith("nuvio://detail/")) {
+                    String[] parts = it.uri.substring("nuvio://detail/".length()).split("/");
+                    String contentType = parts.length > 0 ? parts[0] : "movie";
+                    String id = parts.length > 1 ? parts[1] : "";
+                    intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setComponent(new ComponentName("com.nuvio.tv", "com.nuvio.tv.MainActivity"));
+                    intent.putExtra("contentId", "tmdb:" + id);
+                    intent.putExtra("contentType", contentType);
+                    intent.putExtra("launchMode", "detail");
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    plain = launchIntent(a.getPackageManager(), it.pkg);
+                    break;
+                }
+
                 intent = launchIntent(a.getPackageManager(), it.pkg);
                 plain = intent;
                 if (plain != null) plain.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
@@ -564,6 +579,9 @@ final class HomeApps {
                 if (HomeMode.AMAZON && fireInput(a, it)) return true;
                 intent = inputIntent(a, it);
                 break;
+            case SEARCH:
+                SearchDialog.show(a);
+                return true;
             case SETTINGS:
                 intent = new Intent().setComponent(new ComponentName(a, SettingsActivity.class));
                 break;

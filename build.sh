@@ -80,6 +80,7 @@ final class Config {
     static final String CURRENCY = "$CURRENCY";
     static final String TEMPERATURE = "$(prop temperature auto)";
     static final String HIDE_SERVICES = "$(prop hide_services '')";
+    static final String HIDE_TABS = "$(prop hide_tabs '')";
     static final String THEME = "$(prop theme auto)";
     static final boolean DISABLE_ASSISTANT = $ASSIST;
     static final boolean SHOW_CRYPTO = $CRYPTO;

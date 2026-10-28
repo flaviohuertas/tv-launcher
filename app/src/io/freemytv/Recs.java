@@ -54,6 +54,7 @@ final class Recs {
         String link;            // opens the title in its app (looked up with Watchmode), or null: the app's home
         boolean detailed;
         java.io.File photo;     // one of your own photos (Photos): no title, no caption
+        String category;        // null, "anime", "kids", "docs"
     }
 
     interface Listener { void onRecs(); }
@@ -61,7 +62,7 @@ final class Recs {
     // TMDB's own mirror of api.themoviedb.org, on the images' domain: some ISPs block the other name (Jio, #327)
     private static final String API = "https://api.tmdb.org/3";
     /** The most cards per tab and hour (Prefs.cards() picks how many, 3 by default); the home screen shows 3 at a time and scrolls. */
-    static final int MAX_CARDS = 6;
+    static final int MAX_CARDS = 20;
 
     /** The backdrops: on a 720p UI, TMDB's 1280-wide copy shows the same and is lighter to download and decode. */
     private static final String IMAGES = "https://image.tmdb.org/t/p/" + (Backdrop.W <= 1280 ? "w1280" : "original");
@@ -70,7 +71,7 @@ final class Recs {
     private static final int ANIMATION = 16;
     private static final long LIST_EVERY = 6 * 3600_000L;
     /** Bump when what is saved for each title changes (the saved list is discarded and fetched again). */
-    private static final int CACHE_VERSION = 5;
+    private static final int CACHE_VERSION = 8;
     private static final int MANHA = 0, TARDE = 1, NOITE = 2;
     /** Service name on TMDB (part of the name, lowercase) → TV app (HomeApps key, package). */
     private static final String[][] SERVICES = {
@@ -109,6 +110,7 @@ final class Recs {
         {"premier", "premier", "gpm.tnt_premier"},
         {"amediateka", "amediateka", "ru.amediateka"},
         {"more tv", "wink", "ru.rt.video.app.tv"},   // TMDB: "More TV" (more.tv is part of Rostelecom's Wink now)
+        {"nuvio", "nuvio", "com.nuvio.tv"},
     };
     /** Services matched by their whole name, where a part would catch another: "WOW Presents Plus", "Belas Artes à La Carte". */
     private static final Set<String> WHOLE_NAME = new HashSet<>(Arrays.asList("wow", "arte"));
@@ -140,6 +142,7 @@ final class Recs {
         SERVICE_NAME.put("amediateka", "Амедиатека");
         SERVICE_NAME.put("wink", "Wink");
         SERVICE_NAME.put("plex", "Plex");
+        SERVICE_NAME.put("nuvio", "Nuvio");
     }
     /** Country for "what streams where" (config.properties "tmdb_region", e.g. US, GB, BR). */
     static final String REGION = Place.region();
@@ -168,6 +171,7 @@ final class Recs {
     private final Context context;
     private final SharedPreferences cache;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
+    private final ExecutorService imagePool = Executors.newFixedThreadPool(4);
     private final Handler main = new Handler(Looper.getMainLooper());
     private final List<Listener> listeners = new ArrayList<>();
     private final Map<String, Poster> posters = new LinkedHashMap<>();   // narrow-card portraits, same keys as images
@@ -188,6 +192,7 @@ final class Recs {
         if (cache.getInt("version", 0) != CACHE_VERSION) cache.edit().clear().putInt("version", CACHE_VERSION).apply();
         try {
             String saved = cache.getString("picks", null);
+            if (saved == null) saved = cache.getString("picks_fallback", null);
             if (saved != null) picks = parse(new JSONArray(saved));
             period = cache.getInt("period", -1);
             listAt = cache.getLong("listAt", 0);
@@ -296,6 +301,13 @@ final class Recs {
         return hour >= 5 && hour < 12 ? MANHA : hour >= 12 && hour < 18 ? TARDE : NOITE;
     }
 
+    private static boolean matches(Pick p, String kind) {
+        if (kind == null) return p.category == null;
+        if ("movie".equals(kind)) return "movie".equals(p.kind) && p.category == null;
+        if ("tv".equals(kind)) return "tv".equals(p.kind) && p.category == null;
+        return kind.equals(p.category);
+    }
+
     /** This hour's picks (the first is the featured one; the arrows switch to the others). */
     List<Pick> now() {
         return now(null);
@@ -307,7 +319,7 @@ final class Recs {
         if (!hasKey(context)) return list;    // no TMDB key: no recommendations
         Map<String, Boolean> have = new HashMap<>();   // one look per app, not per title (this runs every 15 s)
         for (Pick p : picks) {
-            if ((kind == null || kind.equals(p.kind))
+            if (matches(p, kind)
                     && (!p.detailed || (p.pkg != null && have.computeIfAbsent(p.pkg, this::installed)))) list.add(p);   // app missing or switched off: skip
         }
         if (list.isEmpty()) return list;
@@ -350,7 +362,7 @@ final class Recs {
             if (b != null) return b;
             if (!pending.add(key)) return null;
         }
-        io.execute(() -> {
+        imagePool.execute(() -> {
             try {
                 loadImage(p);
             } finally {
@@ -405,10 +417,20 @@ final class Recs {
                 if (tried > 0 && failures == tried) throw new IOException(last);
                 error = "";
                 failedAt = 0;
+                for (Pick pick : wanted()) backdrop(pick);
             } catch (Exception e) {
                 error = e.getMessage() == null ? e.toString() : e.getMessage();
                 failedAt = System.currentTimeMillis();
                 AppLog.w("recommendations: " + error);
+                if (picks.isEmpty()) {
+                    try {
+                        String fallback = cache.getString("picks_fallback", null);
+                        if (fallback != null) {
+                            picks = parse(new JSONArray(fallback));
+                            AppLog.w("recommendations: restored " + picks.size() + " fallback picks from cache");
+                        }
+                    } catch (Exception ignored) {}
+                }
             } finally {
                 fetching = false;
                 writeStatus();
@@ -492,7 +514,7 @@ final class Recs {
     List<Pick> wanted() {
         List<Pick> out = new ArrayList<>();
         java.util.Set<String> seen = new java.util.HashSet<>();
-        for (String kind : new String[] {null, "movie", "tv"}) {
+        for (String kind : new String[] {null, "movie", "tv", "anime", "kids", "docs"}) {
             for (Pick p : now(kind)) if (seen.add(key(p))) out.add(p);
         }
         return out;
@@ -503,15 +525,20 @@ final class Recs {
         return p.kind + ":" + p.id;
     }
 
+    private final Runnable notifyRunnable = () -> {
+        for (Listener l : new ArrayList<>(listeners)) l.onRecs();
+    };
+
     private void notifyListeners() {
-        main.post(() -> { for (Listener l : new ArrayList<>(listeners)) l.onRecs(); });
+        main.removeCallbacks(notifyRunnable);
+        main.postDelayed(notifyRunnable, 50);
     }
 
     // MARK: - TMDB
 
     private void fetchList(int p) throws Exception {
         // None of the services we know is on the TV (or hide_services hides them all): no region would change that.
-        boolean any = false;
+        boolean any = installed("com.nuvio.tv");
         for (String[] s : SERVICES) any |= installed(s[2]);
         if (!any) throw new IOException(NO_KNOWN_APPS);
         // The services the TV has, by their TMDB ids in your region.
@@ -522,11 +549,11 @@ final class Recs {
             String[] s = service(o.optString("provider_name"), o.optInt("provider_id"));
             if (s != null && installed(s[2])) services.put(o.getInt("provider_id"), s);
         }
-        if (services.isEmpty()) throw new IOException(NO_APPS);
+        if (services.isEmpty() && !installed("com.nuvio.tv")) throw new IOException(NO_APPS);
         StringBuilder ids = new StringBuilder();
         for (int id : services.keySet()) ids.append(ids.length() == 0 ? "" : "|").append(id);
         String common = "&language=" + lang() + "&watch_region=" + REGION + "&with_watch_monetization_types=flatrate&include_adult=false"
-                + "&sort_by=popularity.desc&with_watch_providers=" + URLEncoder.encode(ids.toString(), "UTF-8")
+                + "&sort_by=popularity.desc" + (ids.length() > 0 ? "&with_watch_providers=" + URLEncoder.encode(ids.toString(), "UTF-8") : "")
                 + (Config.HIDE_ANIMATION ? "&without_genres=" + ANIMATION : "");
         // 1. Trending this week (TMDB goes by what people are watching and searching for right now), only what is
         //    on one of the TV's services: the details say where (and are then ready).
@@ -553,6 +580,18 @@ final class Recs {
         List<Pick> newMovies = new ArrayList<>(), newShows = new ArrayList<>();
         for (int i = 0; i < movies.length(); i++) add(newMovies, movies.getJSONObject(i), "movie");
         for (int i = 0; i < shows.length(); i++) add(newShows, shows.getJSONObject(i), "tv");
+        if (newMovies.size() < 25) {
+            try {
+                JSONArray pop = get("/movie/popular?language=" + lang() + common).getJSONArray("results");
+                for (int i = 0; i < pop.length(); i++) add(newMovies, pop.getJSONObject(i), "movie");
+            } catch (Exception ignored) {}
+        }
+        if (newShows.size() < 25) {
+            try {
+                JSONArray pop = get("/tv/popular?language=" + lang() + common).getJSONArray("results");
+                for (int i = 0; i < pop.length(); i++) add(newShows, pop.getJSONObject(i), "tv");
+            } catch (Exception ignored) {}
+        }
         // One title of your Plex library per kind (one of the newest 8, another each time the list is made) among the
         // trending ones: a surprise, not half the row. Its images come now, so a server that sleeps later leaves no gray card.
         if (plexOn()) {
@@ -569,8 +608,26 @@ final class Recs {
         // Trending first, then the new releases; movies and shows alternating, without repeats, up to 24.
         List<Pick> list = new ArrayList<>();
         java.util.Set<String> seen = new java.util.HashSet<>();
-        alternate(list, seen, hotMovies, hotShows, 24);
-        alternate(list, seen, newMovies, newShows, 24);
+        // 3. Animes (movies and series)
+        List<Pick> animeMovies = new ArrayList<>(), animeShows = new ArrayList<>();
+        fetchCategory(animeMovies, "/discover/movie?vote_count.gte=20&sort_by=popularity.desc&with_keywords=210024", "movie", "anime");
+        fetchCategory(animeShows, "/discover/tv?vote_count.gte=20&sort_by=popularity.desc&with_keywords=210024", "tv", "anime");
+
+        // 4. Kids (movies and series)
+        List<Pick> kidsMovies = new ArrayList<>(), kidsShows = new ArrayList<>();
+        fetchCategory(kidsMovies, "/discover/movie?vote_count.gte=20&sort_by=popularity.desc&with_genres=10751", "movie", "kids");
+        fetchCategory(kidsShows, "/discover/tv?vote_count.gte=20&sort_by=popularity.desc&with_genres=10762|10751", "tv", "kids");
+
+        // 5. Documentários (movies and series)
+        List<Pick> docMovies = new ArrayList<>(), docShows = new ArrayList<>();
+        fetchCategory(docMovies, "/discover/movie?vote_count.gte=10&sort_by=popularity.desc&with_genres=99", "movie", "docs");
+        fetchCategory(docShows, "/discover/tv?vote_count.gte=10&sort_by=popularity.desc&with_genres=99", "tv", "docs");
+
+        alternate(list, seen, hotMovies, hotShows, 35);
+        alternate(list, seen, newMovies, newShows, 35);
+        appendAlternating(list, seen, animeMovies, animeShows, 24);
+        appendAlternating(list, seen, kidsMovies, kidsShows, 24);
+        appendAlternating(list, seen, docMovies, docShows, 24);
         if (list.isEmpty()) throw new IOException("TMDB returned no recommendations");
         picks = list;
         period = p;
@@ -634,12 +691,17 @@ final class Recs {
     }
 
     private static void add(List<Pick> list, JSONObject o, String kind) {
+        add(list, o, kind, null);
+    }
+
+    private static void add(List<Pick> list, JSONObject o, String kind, String category) {
         String backdrop = o.optString("backdrop_path", "");
         if (backdrop.isEmpty() || "null".equals(backdrop)) return;
-        if (Config.HIDE_ANIMATION && animated(o)) return;
+        if (category == null && Config.HIDE_ANIMATION && animated(o)) return;
         Pick p = new Pick();
         p.id = o.optInt("id");
         p.kind = kind;
+        p.category = category;
         p.title = o.optString(kind.equals("movie") ? "title" : "name");
         p.backdrop = backdrop;
         p.poster = o.isNull("poster_path") ? "" : o.optString("poster_path");
@@ -689,7 +751,14 @@ final class Recs {
                 p.pkg = s[2];
             }
         }
-        if (p.app != null) parts.add(SERVICE_NAME.get(p.app));
+        if (installed("com.nuvio.tv")) {
+            if (p.app != null) parts.add(SERVICE_NAME.get(p.app));
+            p.app = "nuvio";
+            p.pkg = "com.nuvio.tv";
+            p.link = "nuvio://detail/" + p.kind + "/" + p.id;
+        } else if (p.app != null) {
+            parts.add(SERVICE_NAME.get(p.app));
+        }
         p.meta = String.join(" · ", parts);
         p.detailed = true;
     }
@@ -860,6 +929,31 @@ final class Recs {
         }
     }
 
+    private void fetchCategory(List<Pick> out, String path, String kind, String category) {
+        try {
+            JSONArray results = get(path + "&language=" + lang()).getJSONArray("results");
+            for (int i = 0; i < results.length() && out.size() < 20; i++) {
+                add(out, results.getJSONObject(i), kind, category);
+            }
+        } catch (Exception e) {
+            AppLog.w("recs category " + category + ": " + e.getMessage());
+        }
+    }
+
+    private static void appendAlternating(List<Pick> out, java.util.Set<String> seen, List<Pick> a, List<Pick> b, int count) {
+        int added = 0;
+        for (int i = 0; i < Math.max(a.size(), b.size()) && added < count; i++) {
+            if (i < a.size() && seen.add(key(a.get(i)))) {
+                out.add(a.get(i));
+                added++;
+            }
+            if (i < b.size() && added < count && seen.add(key(b.get(i)))) {
+                out.add(b.get(i));
+                added++;
+            }
+        }
+    }
+
     private JSONObject get(String path) throws IOException, org.json.JSONException {
         String key = key();
         if (key.isEmpty()) throw new IOException("no TMDB key");
@@ -966,20 +1060,53 @@ final class Recs {
 
     // MARK: - Images (TMDB originals on disk, up to 24 so the whole list fits; this hour's kept ready in memory)
 
+    private void downloadPoster(Pick p) throws IOException {
+        File poster = posterFile(p);
+        if (poster == null || poster.exists()) return;
+        fetchFile(poster, p.id < 0
+                ? plexOpen("/photo/:/transcode?width=500&height=750&minSize=1&url=" + URLEncoder.encode(p.poster, "UTF-8"))
+                : (HttpURLConnection) new URL(POSTERS + p.poster).openConnection());
+    }
+
     private void download(Pick p) throws IOException {
+        try {
+            downloadPoster(p);
+        } catch (IOException e) {
+            AppLog.w("poster: " + e.getMessage());
+        }
         File f = imageFile(p);
         if (!f.exists()) fetchFile(f, p.id < 0
                 ? plexOpen("/photo/:/transcode?width=1920&height=1080&minSize=1&url=" + URLEncoder.encode(p.backdrop, "UTF-8"))
                 : (HttpURLConnection) new URL(IMAGES + p.backdrop).openConnection());
-        File poster = posterFile(p);
-        if (poster == null || poster.exists()) return;
-        try {   // the narrow cards: without a poster they crop the backdrop
-            fetchFile(poster, p.id < 0
-                    ? plexOpen("/photo/:/transcode?width=500&height=750&minSize=1&url=" + URLEncoder.encode(p.poster, "UTF-8"))
-                    : (HttpURLConnection) new URL(POSTERS + p.poster).openConnection());
-        } catch (IOException e) {
-            AppLog.w("poster: " + e.getMessage());
+    }
+
+    void prefetchPoster(Pick p) {
+        if (p == null || p.backdrop == null) return;
+        final String key = p.backdrop;
+        synchronized (images) {
+            if (posters.containsKey(key)) return;
+            if (!pending.add("p:" + key)) return;
         }
+        imagePool.execute(() -> {
+            try {
+                downloadPoster(p);
+                Poster poster = light ? loadPoster(p) : null;
+                if (poster != null) {
+                    synchronized (images) {
+                        posters.put(key, poster);
+                    }
+                    notifyListeners();
+                }
+            } catch (Exception ignored) {
+            } finally {
+                synchronized (images) { pending.remove("p:" + key); }
+            }
+        });
+    }
+
+    void prefetchPosters(List<Pick> list) {
+        if (list == null) return;
+        for (Pick p : list) prefetchPoster(p);
     }
 
     private File posterFile(Pick p) {
@@ -1015,6 +1142,15 @@ final class Recs {
         File f = imageFile(p);
         try {
             download(p);
+            boolean forLight = light;
+            Poster poster = forLight ? loadPoster(p) : null;
+            if (poster != null) {
+                synchronized (images) {
+                    posters.put(p.backdrop, poster);
+                }
+                notifyListeners();
+            }
+
             BitmapFactory.Options bounds = new BitmapFactory.Options();
             bounds.inJustDecodeBounds = true;
             BitmapFactory.decodeFile(f.getPath(), bounds);
@@ -1023,21 +1159,17 @@ final class Recs {
             while (bounds.outWidth / (opts.inSampleSize * 2) >= Backdrop.W) opts.inSampleSize *= 2;
             Bitmap b = BitmapFactory.decodeFile(f.getPath(), opts);
             if (b == null) throw new IOException("unreadable image");
-            AppLog.w("backdrop \u201c" + p.title + "\u201d: " + bounds.outWidth + "×" + bounds.outHeight + " → " + Backdrop.W + "×" + Backdrop.H);
-            boolean forLight = light;
+            AppLog.w("backdrop “" + p.title + "”: " + bounds.outWidth + "×" + bounds.outHeight + " → " + Backdrop.W + "×" + Backdrop.H);
             Backdrop backdrop = Backdrop.make(b, forLight);
             if (forLight != light) return;   // the design changed midway: this one is stale
-            Poster poster = forLight ? loadPoster(p) : null;
             synchronized (images) {
                 images.put(p.backdrop, backdrop);
-                if (poster != null) posters.put(p.backdrop, poster);
-                while (images.size() > (forLight ? Prefs.cards() + 7 : 4)) images.remove(images.keySet().iterator().next());
+                while (images.size() > 120) images.remove(images.keySet().iterator().next());
                 posters.keySet().retainAll(images.keySet());
             }
             notifyListeners();
         } catch (IOException | RuntimeException | OutOfMemoryError e) {
-            //noinspection ResultOfMethodCallIgnored
-            f.delete();
+            if (f.exists() && f.length() == 0) f.delete();
             AppLog.w("recommendation image: " + e.getMessage());
         }
     }
@@ -1082,9 +1214,9 @@ final class Recs {
             if (parts[i].lastModified() < stale) parts[i].delete();
         }
         File[] files = dir.listFiles((d, name) -> !name.endsWith(".part"));
-        if (files == null || files.length <= 60) return;
+        if (files == null || files.length <= 400) return;
         Arrays.sort(files, (a, b) -> Long.compare(a.lastModified(), b.lastModified()));
-        for (int i = 0; i < files.length - 60; i++) {
+        for (int i = 0; i < files.length - 400; i++) {
             //noinspection ResultOfMethodCallIgnored
             files[i].delete();
         }
@@ -1099,9 +1231,10 @@ final class Recs {
                 a.put(new JSONObject().put("id", p.id).put("kind", p.kind).put("title", p.title).put("backdrop", p.backdrop)
                         .put("poster", p.poster == null ? "" : p.poster).put("link", p.link == null ? "" : p.link)
                         .put("meta", p.meta).put("app", p.app == null ? "" : p.app).put("pkg", p.pkg == null ? "" : p.pkg)
-                        .put("detailed", p.detailed));
+                        .put("detailed", p.detailed).put("cat", p.category == null ? "" : p.category));
             }
-            SharedPreferences.Editor e = cache.edit().putString("picks", a.toString()).putInt("period", period).putLong("listAt", listAt)
+            SharedPreferences.Editor e = cache.edit().putString("picks", a.toString())
+                    .putString("picks_fallback", a.toString()).putInt("period", period).putLong("listAt", listAt)
                     .putString("language", listLanguage)
                     .putLong("keyStamp", keyStamp).putInt("version", CACHE_VERSION);
             // Watchmode links of titles no longer in the list go (the refused-key mark stays).
@@ -1129,6 +1262,8 @@ final class Recs {
             p.app = o.optString("app").isEmpty() ? null : o.optString("app");
             p.pkg = o.optString("pkg").isEmpty() ? null : o.optString("pkg");
             p.detailed = o.optBoolean("detailed");
+            String cat = o.optString("cat", "");
+            p.category = cat.isEmpty() ? null : cat;
             out.add(p);
         }
         return out;
