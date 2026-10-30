@@ -28,7 +28,7 @@ final class WatchNext {
     static final String PERMISSION = "android.permission.READ_TV_LISTINGS";
     /** Declared by apps that write the TV's lists (apps can also write their own rows and Watch Next without it). */
     private static final String WRITE_EPG = "com.android.providers.tv.permission.WRITE_EPG_DATA";
-    static final int PER_APP = 2, MAX = 12;
+    static final int PER_APP = 2, MAX = 20;
     /** Channel names that mean "continue watching" (apps name their own channel). */
     private static final Set<String> CHANNEL_NAMES = new HashSet<>(java.util.Arrays.asList(
             "continue watching", "seguir viendo", "continuar viendo", "continuar assistindo", "continue assistindo", "continuar a ver"));
@@ -36,7 +36,7 @@ final class WatchNext {
     static final class Item {
         String pkg, title, episode;     // episode: "S2 E5" (in the TV's language) or the episode's title, or null
         String app;                     // the app's name, for the card's details line
-        long duration, position, engaged;
+        long id, duration, position, engaged;
         String intent;
         final Uri pictureUri;
         final String pictureKey, bannerKey;
@@ -66,9 +66,206 @@ final class WatchNext {
         }
     }
 
+    static final class HiddenRecord {
+        final long time;
+        final long engaged;
+        final long pos;
+        final String ep;
+        final String intent;
+
+        HiddenRecord(long time, long engaged, long pos, String ep, String intent) {
+            this.time = time;
+            this.engaged = engaged;
+            this.pos = pos;
+            this.ep = ep != null ? ep : "";
+            this.intent = intent != null ? intent : "";
+        }
+    }
+
+    private static final Object LOCK = new Object();
+    private static Map<String, HiddenRecord> hiddenMap;
+
+    private static Map<String, HiddenRecord> getHiddenMap() {
+        synchronized (LOCK) {
+            if (hiddenMap == null) {
+                hiddenMap = new HashMap<>();
+                String raw = Prefs.watchHiddenRecords();
+                if (raw != null && !raw.trim().isEmpty() && !raw.trim().equals("{}")) {
+                    try {
+                        org.json.JSONObject obj = new org.json.JSONObject(raw);
+                        java.util.Iterator<String> keys = obj.keys();
+                        while (keys.hasNext()) {
+                            String k = keys.next();
+                            org.json.JSONObject o = obj.optJSONObject(k);
+                            if (o != null) {
+                                hiddenMap.put(k, new HiddenRecord(
+                                        o.optLong("time", 0),
+                                        o.optLong("engaged", 0),
+                                        o.optLong("pos", 0),
+                                        o.optString("ep", ""),
+                                        o.optString("intent", "")
+                                ));
+                            }
+                        }
+                    } catch (Throwable e) {
+                        AppLog.w("failed to parse watch_hidden_records: " + e.getMessage());
+                    }
+                }
+            }
+            return hiddenMap;
+        }
+    }
+
+    private static void saveHiddenMapLocked(Map<String, HiddenRecord> map) {
+        try {
+            org.json.JSONObject obj = new org.json.JSONObject();
+            for (Map.Entry<String, HiddenRecord> e : map.entrySet()) {
+                HiddenRecord r = e.getValue();
+                org.json.JSONObject o = new org.json.JSONObject();
+                o.put("time", r.time);
+                o.put("engaged", r.engaged);
+                o.put("pos", r.pos);
+                o.put("ep", r.ep);
+                o.put("intent", r.intent);
+                obj.put(e.getKey(), o);
+            }
+            Prefs.setWatchHiddenRecords(obj.toString());
+        } catch (Throwable e) {
+            AppLog.w("failed to save watch_hidden_records: " + e.getMessage());
+        }
+    }
+
     /** How a hidden item is remembered: its app and title (apps can't be asked to drop another app's entry). */
     static String hideKey(Item it) {
         return it.pkg + "|" + it.title;
+    }
+
+    static void hide(Context c, Item it) {
+        if (it == null) return;
+        synchronized (LOCK) {
+            Map<String, HiddenRecord> map = getHiddenMap();
+            long now = System.currentTimeMillis();
+            HiddenRecord r = new HiddenRecord(now, it.engaged, it.position, it.episode, it.intent);
+            String k1 = hideKey(it);
+            String k2 = it.pkg + "|" + it.title;
+            map.put(k1, r);
+            map.put(k2, r);
+            if (it.intent != null) map.put(it.pkg + "|" + it.intent, r);
+            saveHiddenMapLocked(map);
+
+            Set<String> hidden = Prefs.watchHidden();
+            hidden.add(k1);
+            hidden.add(k2);
+            if (it.intent != null) hidden.add(it.pkg + "|" + it.intent);
+            Prefs.setWatchHidden(hidden);
+        }
+        if (c != null && it.id > 0) {
+            try {
+                c.getContentResolver().delete(
+                        TvContract.buildWatchNextProgramUri(it.id), null, null);
+            } catch (Throwable ignored) {}
+        }
+    }
+
+    static void unhide(Item it) {
+        if (it == null) return;
+        synchronized (LOCK) {
+            Map<String, HiddenRecord> map = getHiddenMap();
+            String k1 = hideKey(it);
+            String k2 = it.pkg + "|" + it.title;
+            map.remove(k1);
+            map.remove(k2);
+            if (it.intent != null) map.remove(it.pkg + "|" + it.intent);
+            saveHiddenMapLocked(map);
+
+            Set<String> hidden = Prefs.watchHidden();
+            hidden.remove(k1);
+            hidden.remove(k2);
+            if (it.intent != null) hidden.remove(it.pkg + "|" + it.intent);
+            Prefs.setWatchHidden(hidden);
+        }
+    }
+
+    static int hiddenCount() {
+        synchronized (LOCK) {
+            Map<String, HiddenRecord> map = getHiddenMap();
+            Set<HiddenRecord> unique = new HashSet<>(map.values());
+            int count = unique.size();
+            if (count == 0) {
+                Set<String> set = Prefs.watchHidden();
+                return set != null ? set.size() : 0;
+            }
+            return count;
+        }
+    }
+
+    static void clearHidden() {
+        synchronized (LOCK) {
+            Map<String, HiddenRecord> map = getHiddenMap();
+            map.clear();
+            saveHiddenMapLocked(map);
+            Prefs.setWatchHidden(new HashSet<>());
+        }
+    }
+
+    private static HiddenRecord findRecordLocked(Item it, Map<String, HiddenRecord> map) {
+        if (it == null || map == null) return null;
+        HiddenRecord r = map.get(hideKey(it));
+        if (r != null) return r;
+        r = map.get(it.pkg + "|" + it.title);
+        if (r != null) return r;
+        if (it.intent != null) {
+            r = map.get(it.pkg + "|" + it.intent);
+            if (r != null) return r;
+        }
+        return null;
+    }
+
+    private static boolean isRewatched(Item it, HiddenRecord r) {
+        if (it == null || r == null) return false;
+        // Engaged timestamp advanced by at least 1 second
+        if (it.engaged > r.engaged + 1000) return true;
+        // Engagement occurred at or after the moment it was hidden
+        if (r.time > 0 && it.engaged >= r.time && it.engaged > r.engaged) return true;
+        // Playback position shifted by at least 3 seconds (or restarted)
+        if (Math.abs(it.position - r.pos) >= 3000) return true;
+        // Different episode of the same show
+        if (it.episode != null && !it.episode.isEmpty() && !r.ep.isEmpty() && !it.episode.equals(r.ep)) return true;
+        return false;
+    }
+
+    static boolean isHidden(Item it) {
+        if (it == null) return false;
+        synchronized (LOCK) {
+            Map<String, HiddenRecord> map = getHiddenMap();
+            HiddenRecord r = findRecordLocked(it, map);
+            if (r != null) {
+                if (isRewatched(it, r)) {
+                    unhide(it);
+                    return false;
+                }
+                return true;
+            }
+            Set<String> set = Prefs.watchHidden();
+            if (set != null && !set.isEmpty()) {
+                if (set.contains(hideKey(it)) || set.contains(it.pkg + "|" + it.title)
+                        || (it.intent != null && set.contains(it.pkg + "|" + it.intent))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    static boolean isHidden(Item it, Set<String> hidden) {
+        if (it == null) return false;
+        if (isHidden(it)) return true;
+        if (hidden != null && !hidden.isEmpty()) {
+            if (hidden.contains(it.pkg + "|" + it.title)) return true;
+            if (it.intent != null && hidden.contains(it.pkg + "|" + it.intent)) return true;
+            if (hidden.contains(hideKey(it))) return true;
+        }
+        return false;
     }
 
     static boolean allowed(Context c) {
@@ -97,23 +294,34 @@ final class WatchNext {
                 all.addAll(read(cr, Uri.parse("content://android.media.tv/preview_program")));
             } catch (Throwable ignored) {}
         }
-        Set<String> off = Prefs.watchOff(), hidden = Prefs.watchHidden();
+        Set<String> off = Prefs.watchOff();
         for (java.util.Iterator<Item> i = all.iterator(); i.hasNext(); ) {
             Item it = i.next();
-            if (off.contains(it.pkg) || hidden.contains(hideKey(it))) i.remove();
+            if (off.contains(it.pkg) || isHidden(it)) i.remove();
         }
         Collections.sort(all, (a, b) -> Long.compare(b.engaged, a.engaged));
+        int max = Prefs.watchItems();
+        int perAppLimit = Math.max(PER_APP, (max + 2) / 3);
         List<Item> out = new ArrayList<>();
         Map<String, Integer> perApp = new HashMap<>();
         Set<String> seen = new HashSet<>();
         for (Item it : all) {
             String key = it.pkg + "|" + (it.intent != null ? it.intent : it.title);
             int n = perApp.containsKey(it.pkg) ? perApp.get(it.pkg) : 0;
-            if (n >= PER_APP || !seen.add(key)) continue;
+            if (n >= perAppLimit || !seen.add(key)) continue;
             perApp.put(it.pkg, n + 1);
             it.app = appName(c, it.pkg);
             out.add(it);
-            if (out.size() >= MAX) break;
+            if (out.size() >= max) break;
+        }
+        if (out.size() < max) {
+            for (Item it : all) {
+                String key = it.pkg + "|" + (it.intent != null ? it.intent : it.title);
+                if (!seen.add(key)) continue;
+                it.app = appName(c, it.pkg);
+                out.add(it);
+                if (out.size() >= max) break;
+            }
         }
         return out;
     }
@@ -210,6 +418,7 @@ final class WatchNext {
     private static List<Item> read(ContentResolver cr, Uri uri) {
         List<Item> out = new ArrayList<>();
         List<String> projection = new ArrayList<>(java.util.Arrays.asList(
+                android.provider.BaseColumns._ID,
                 TvContract.WatchNextPrograms.COLUMN_BROWSABLE,
                 TvContract.WatchNextPrograms.COLUMN_TITLE,
                 TvContract.WatchNextPrograms.COLUMN_PACKAGE_NAME,
@@ -247,6 +456,7 @@ final class WatchNext {
                 if (it.episode != null && (it.episode.isEmpty() || it.title.contains(it.episode))) it.episode = null;
                 it.duration = number(cur, TvContract.WatchNextPrograms.COLUMN_DURATION_MILLIS);
                 it.position = number(cur, TvContract.WatchNextPrograms.COLUMN_LAST_PLAYBACK_POSITION_MILLIS);
+                it.id = number(cur, android.provider.BaseColumns._ID);
                 it.engaged = number(cur, TvContract.WatchNextPrograms.COLUMN_LAST_ENGAGEMENT_TIME_UTC_MILLIS);
                 if (it.engaged <= 0) it.engaged = it.position;
                 it.intent = text(cur, TvContract.WatchNextPrograms.COLUMN_INTENT_URI);

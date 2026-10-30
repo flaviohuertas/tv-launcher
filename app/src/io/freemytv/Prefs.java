@@ -126,6 +126,10 @@ final class Prefs {
         sp().edit().putStringSet(key, new HashSet<>(value)).apply();
     }
 
+    private static void putQuietly(String key, String value) {
+        sp().edit().putString(key, value).apply();
+    }
+
     // MARK: - Language and units
 
     /** "auto" or a language code as picked ("pt", "fr", "zh-CN"…); Ui.applyLanguage finds its catalogue. */
@@ -155,6 +159,16 @@ final class Prefs {
     static void setCards(int n) {
         put("cards_explicit", true);
         put("cards", n);
+    }
+
+    /** Continue Watching items on the home screen: 3 up to WatchNext.MAX (default 10). */
+    static int watchItems() {
+        int c = sp().getInt("watch_items", 10);
+        return Math.max(3, Math.min(WatchNext.MAX, c));
+    }
+
+    static void setWatchItems(int n) {
+        put("watch_items", Math.max(3, Math.min(WatchNext.MAX, n)));
     }
 
     // MARK: - Picks from
@@ -252,13 +266,13 @@ final class Prefs {
 
     // MARK: - Top of the home screen
 
-    static final String TOP_PICKS = "picks", TOP_CONTINUE = "continue", TOP_NONE = "none";
-    static final String[] TOP_CONTENT = {TOP_PICKS, TOP_CONTINUE, TOP_NONE};
+    static final String TOP_ALL = "all", TOP_PICKS = "picks", TOP_CONTINUE = "continue", TOP_NONE = "none";
+    static final String[] TOP_CONTENT = {TOP_ALL, TOP_PICKS, TOP_CONTINUE, TOP_NONE};
 
-    /** What the cards under the title show: the recommendations (TMDB), what you were watching in your apps, or nothing. */
+    /** What the cards under the title show: all (clock + picks + continue), recommendations (TMDB), continue watching, or clock only. */
     static String topContent() {
-        String v = sp().getString("topContent", TOP_PICKS);
-        return v.equals(TOP_CONTINUE) || v.equals(TOP_NONE) ? v : TOP_PICKS;
+        String v = sp().getString("topContent", TOP_ALL);
+        return v.equals(TOP_PICKS) || v.equals(TOP_CONTINUE) || v.equals(TOP_NONE) ? v : TOP_ALL;
     }
 
     static void setTopContent(String v) { put("topContent", v); }
@@ -270,6 +284,10 @@ final class Prefs {
     /** Single items hidden from Continue Watching (holding OK on a card), as WatchNext.hideKey. */
     static Set<String> watchHidden() { return new HashSet<>(sp().getStringSet("watchHidden", new HashSet<>())); }
     static void setWatchHidden(Set<String> keys) { putQuietly("watchHidden", keys); }
+
+    /** Detailed records for hidden items (JSON object) storing hide time, engagement, position, episode. */
+    static String watchHiddenRecords() { return sp().getString("watch_hidden_records", "{}"); }
+    static void setWatchHiddenRecords(String json) { putQuietly("watch_hidden_records", json != null ? json : "{}"); }
 
     // MARK: - Widgets and coins
 
