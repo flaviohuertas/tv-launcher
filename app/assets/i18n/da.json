@@ -57,7 +57,6 @@
   "Fog": "Tåge",
   "For You": "Til dig",
   "Forecast": "Vejrudsigt",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV er slået til: ny startskærm og pauseskærm, {n} apps slået fra.",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} er klar: Startskærm > Opdateringer.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Free My TV's startskærm gik ned 3 gange i træk; den oprindelige er tilbage.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on} af {total}",
   "{time} left": "{time} tilbage",
   "{version} is out: build it again": "{version} er ude: byg den igen",
-  "← → to move · OK to drop · Back to cancel": "← → flyt · OK slip · Tilbage annuller"
+  "← → to move · OK to drop · Back to cancel": "← → flyt · OK slip · Tilbage annuller",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

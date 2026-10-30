@@ -406,7 +406,7 @@ final class SearchDialog {
         h.currentResult = null;
         h.image.setImageDrawable(null);
         h.title.setText(Ui.tr("Search"));
-        h.meta.setText(Ui.tr("Free My TV Universal Search"));
+        h.meta.setText(Ui.tr("TV Launcher Universal Search"));
         h.imdbBadge.setVisibility(View.GONE);
         h.overview.setText(Ui.tr("Select any movie or series to see full details and launch directly."));
         h.actionBtn.setVisibility(View.GONE);

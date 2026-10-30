@@ -57,7 +57,6 @@
   "Fog": "Mgła",
   "For You": "Dla Ciebie",
   "Forecast": "Prognoza",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV włączone: nowy ekran główny i wygaszacz, wyłączone aplikacje: {n}.",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} jest gotowe: Ustawienia ekranu > Aktualizacje.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Ekran główny Free My TV zawiódł 3 razy pod rząd; przywróciłem fabryczny.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on} z {total}",
   "{time} left": "zostało {time}",
   "{version} is out: build it again": "Jest wersja {version}: zbuduj ją ponownie",
-  "← → to move · OK to drop · Back to cancel": "← → przesuwa · OK upuszcza · Wstecz anuluje"
+  "← → to move · OK to drop · Back to cancel": "← → przesuwa · OK upuszcza · Wstecz anuluje",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

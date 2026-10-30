@@ -57,7 +57,6 @@
   "Fog": "Kabut",
   "For You": "Untuk Anda",
   "Forecast": "Prakiraan",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV aktif: layar utama dan screensaver baru, {n} aplikasi dimatikan.",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} siap: Setelan Layar Utama > Pembaruan.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Layar utama Free My TV mogok 3 kali berturut-turut; kembali ke yang asli.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on} dari {total}",
   "{time} left": "{time} lagi",
   "{version} is out: build it again": "{version} sudah rilis: build ulang",
-  "← → to move · OK to drop · Back to cancel": "← → pindahkan · OK letakkan · Kembali batalkan"
+  "← → to move · OK to drop · Back to cancel": "← → pindahkan · OK letakkan · Kembali batalkan",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

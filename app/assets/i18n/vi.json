@@ -57,7 +57,6 @@
   "Fog": "Sương mù",
   "For You": "Dành cho bạn",
   "Forecast": "Dự báo",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV đã bật: màn hình chính và trình bảo vệ màn hình mới, đã tắt {n} ứng dụng.",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} đã sẵn sàng: Màn hình chính > Cập nhật.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Màn hình chính Free My TV bị lỗi 3 lần liên tiếp; đã chuyển về màn hình gốc.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on}/{total}",
   "{time} left": "còn {time}",
   "{version} is out: build it again": "Đã có {version}: hãy build lại",
-  "← → to move · OK to drop · Back to cancel": "← → di chuyển · OK đặt · Quay lại hủy"
+  "← → to move · OK to drop · Back to cancel": "← → di chuyển · OK đặt · Quay lại hủy",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

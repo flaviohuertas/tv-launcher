@@ -57,7 +57,6 @@
   "Fog": "霧",
   "For You": "おすすめ",
   "Forecast": "予報",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TVがオン：新しいホーム画面とスクリーンセーバー、{n}個のアプリをオフにしました。",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} の準備ができました：ホームの設定＞アップデート",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Free My TVのホーム画面が3回続けて停止したため、元のホーム画面に戻しました。",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on}/{total}",
   "{time} left": "残り{time}",
   "{version} is out: build it again": "{version} が出ました：もう一度ビルドしてください",
-  "← → to move · OK to drop · Back to cancel": "← → 移動 · OK 配置 · 戻る キャンセル"
+  "← → to move · OK to drop · Back to cancel": "← → 移動 · OK 配置 · 戻る キャンセル",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

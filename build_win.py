@@ -169,4 +169,5 @@ subprocess.run([
     "--key-pass", "pass:freemytv", "--out", "FreeMyTV.apk", "out/aligned.apk"
 ], env=env, check=True)
 
-print("SUCCESS! Built FreeMyTV.apk successfully! Size:", os.path.getsize("FreeMyTV.apk"))
+shutil.copyfile("FreeMyTV.apk", "TVLauncher.apk")
+print("SUCCESS! Built FreeMyTV.apk and TVLauncher.apk successfully! Size:", os.path.getsize("TVLauncher.apk"))

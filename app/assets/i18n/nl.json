@@ -57,7 +57,6 @@
   "Fog": "Mist",
   "For You": "Voor jou",
   "Forecast": "Verwachting",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV staat aan: nieuw startscherm en schermbeveiliging, {n} apps uitgezet.",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} staat klaar: Startscherm > Updates.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Het startscherm van Free My TV is 3 keer achter elkaar gecrasht; het originele is terug.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on} van {total}",
   "{time} left": "nog {time}",
   "{version} is out: build it again": "{version} is uit: bouw hem opnieuw",
-  "← → to move · OK to drop · Back to cancel": "← → verplaatsen · OK neerzetten · Terug annuleren"
+  "← → to move · OK to drop · Back to cancel": "← → verplaatsen · OK neerzetten · Terug annuleren",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

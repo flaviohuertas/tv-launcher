@@ -57,7 +57,6 @@
   "Fog": "Fog",
   "For You": "For You",
   "Forecast": "Forecast",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV is on: new home screen and screensaver, {n} apps turned off.",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} is ready: Home Settings > Updates.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on} of {total}",
   "{time} left": "{time} left",
   "{version} is out: build it again": "{version} is out: build it again",
-  "← → to move · OK to drop · Back to cancel": "← → to move · OK to drop · Back to cancel"
+  "← → to move · OK to drop · Back to cancel": "← → to move · OK to drop · Back to cancel",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

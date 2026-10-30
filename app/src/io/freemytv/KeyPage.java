@@ -285,7 +285,7 @@ final class KeyPage {
     private static StringBuilder top() {
         return new StringBuilder(2048).append("<!doctype html><html lang=\"").append(esc(Ui.language))
                 .append("\"><meta charset=utf-8><meta name=viewport content=\"width=device-width,initial-scale=1\">")
-                .append("<title>Free My TV</title><style>")
+                .append("<title>TV Launcher</title><style>")
                 .append("body{margin:0 auto;max-width:34em;padding:24px;font:17px/1.5 system-ui,-apple-system,sans-serif;")
                 .append("background:#1c1c1e;color:#f5f5f7}h1{font-size:24px}li{margin:.3em 0}a{color:#9fd3ff}")
                 .append("textarea{box-sizing:border-box;width:100%;font:15px monospace;padding:10px;border-radius:10px;border:0}")

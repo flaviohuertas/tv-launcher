@@ -57,7 +57,6 @@
   "Fog": "Sisli",
   "For You": "Senin İçin",
   "Forecast": "Tahmin",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV açık: yeni ana ekran ve ekran koruyucu, {n} uygulama kapatıldı.",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} hazır: Ana Ekran Ayarları > Güncellemeler.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Free My TV ana ekranı art arda 3 kez çöktü; orijinal ana ekrana dönüldü.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on}/{total}",
   "{time} left": "{time} kaldı",
   "{version} is out: build it again": "{version} çıktı: yeniden derleyin",
-  "← → to move · OK to drop · Back to cancel": "← → taşı · OK bırak · Geri iptal"
+  "← → to move · OK to drop · Back to cancel": "← → taşı · OK bırak · Geri iptal",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

@@ -57,7 +57,6 @@
   "Fog": "कोहरा",
   "For You": "आपके लिए",
   "Forecast": "पूर्वानुमान",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV चालू है: नई होम स्क्रीन और स्क्रीनसेवर, {n} ऐप बंद किए गए।",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} तैयार है: होम सेटिंग > अपडेट.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Free My TV की होम स्क्रीन लगातार 3 बार क्रैश हुई; मूल होम स्क्रीन वापस लगा दी गई।",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{total} में से {on}",
   "{time} left": "{time} बाकी",
   "{version} is out: build it again": "{version} आ गया है: इसे फिर से बनाएँ",
-  "← → to move · OK to drop · Back to cancel": "← → खिसकाएँ · OK छोड़ें · वापस रद्द करें"
+  "← → to move · OK to drop · Back to cancel": "← → खिसकाएँ · OK छोड़ें · वापस रद्द करें",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

@@ -57,7 +57,6 @@
   "Fog": "Sumua",
   "For You": "Sinulle",
   "Forecast": "Ennuste",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV on päällä: uusi aloitusnäyttö ja näytönsäästäjä, sovelluksia pois päältä: {n}.",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} on valmis: Aloitusnäyttö > Päivitykset.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Free My TV:n aloitusnäyttö kaatui 3 kertaa peräkkäin; alkuperäinen palautettiin.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on}/{total}",
   "{time} left": "{time} jäljellä",
   "{version} is out: build it again": "{version} on julkaistu: rakenna se uudelleen",
-  "← → to move · OK to drop · Back to cancel": "← → siirrä · OK pudota · Takaisin peruuta"
+  "← → to move · OK to drop · Back to cancel": "← → siirrä · OK pudota · Takaisin peruuta",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

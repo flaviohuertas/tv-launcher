@@ -57,7 +57,6 @@
   "Fog": "有霧",
   "For You": "為你推薦",
   "Forecast": "天氣預報",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV 已啟用：已套用新的主畫面和螢幕保護程式，並停用 {n} 個應用程式。",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} 已就緒：主畫面設定 > 更新",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Free My TV 的主畫面連續當機 3 次，已切換回原始主畫面。",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on}/{total}",
   "{time} left": "剩餘 {time}",
   "{version} is out: build it again": "{version} 已推出：請重新建置",
-  "← → to move · OK to drop · Back to cancel": "按 ← → 移動 · 按 OK 放置 · 按返回取消"
+  "← → to move · OK to drop · Back to cancel": "按 ← → 移動 · 按 OK 放置 · 按返回取消",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

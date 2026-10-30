@@ -57,7 +57,6 @@
   "Fog": "Туман",
   "For You": "Для вас",
   "Forecast": "Прогноз",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV увімкнено: новий головний екран і заставка, вимкнено додатків: {n}.",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} готова: Головний екран > Оновлення.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Головний екран Free My TV збоїв 3 рази поспіль; повернуто початковий.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on} з {total}",
   "{time} left": "залишилось {time}",
   "{version} is out: build it again": "Вийшла {version}: зберіть знову",
-  "← → to move · OK to drop · Back to cancel": "← → перемістити · OK розмістити · Назад скасувати"
+  "← → to move · OK to drop · Back to cancel": "← → перемістити · OK розмістити · Назад скасувати",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

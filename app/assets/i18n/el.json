@@ -57,7 +57,6 @@
   "Fog": "Ομίχλη",
   "For You": "Για εσάς",
   "Forecast": "Πρόγνωση",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Το Free My TV είναι ενεργό: νέα αρχική οθόνη και προφύλαξη οθόνης, απενεργοποιημένες εφαρμογές: {n}.",
   "Free My TV {version} is ready: Home Settings > Updates.": "Το Free My TV {version} είναι έτοιμο: Ρυθμίσεις αρχικής > Ενημερώσεις.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Η αρχική οθόνη του Free My TV κατέρρευσε 3 φορές στη σειρά· επανήλθε η αρχική.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on} από {total}",
   "{time} left": "απομένουν {time}",
   "{version} is out: build it again": "Βγήκε η {version}: φτιάξτε το ξανά",
-  "← → to move · OK to drop · Back to cancel": "← → μετακίνηση · OK τοποθέτηση · Πίσω ακύρωση"
+  "← → to move · OK to drop · Back to cancel": "← → μετακίνηση · OK τοποθέτηση · Πίσω ακύρωση",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

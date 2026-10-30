@@ -57,7 +57,6 @@
   "Fog": "안개",
   "For You": "추천",
   "Forecast": "예보",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV 켜짐: 새 홈 화면과 화면 보호기, 앱 {n}개 꺼짐.",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} 준비 완료: 홈 설정 > 업데이트.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Free My TV 홈 화면이 3번 연속 멈춰서 원래 홈 화면으로 돌아갔습니다.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{total}개 중 {on}개",
   "{time} left": "{time} 남음",
   "{version} is out: build it again": "{version} 출시: 다시 빌드하세요",
-  "← → to move · OK to drop · Back to cancel": "← → 이동 · OK 배치 · 뒤로 취소"
+  "← → to move · OK to drop · Back to cancel": "← → 이동 · OK 배치 · 뒤로 취소",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }

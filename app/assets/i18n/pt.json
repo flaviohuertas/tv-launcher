@@ -57,7 +57,6 @@
   "Fog": "Neblina",
   "For You": "Para você",
   "Forecast": "Previsão",
-  "Free My TV Universal Search": "Busca Universal Free My TV",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV ligado: Início e tela de descanso novos, {n} apps desligados.",
   "Free My TV {version} is ready: Home Settings > Updates.": "O Free My TV {version} está pronto: Ajustes do Início > Atualizações.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "O Início do Free My TV caiu 3 vezes seguidas; voltei para o Início original.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on} de {total}",
   "{time} left": "faltam {time}",
   "{version} is out: build it again": "Saiu a {version}: compile de novo",
-  "← → to move · OK to drop · Back to cancel": "← → para mover · OK para soltar · Voltar para cancelar"
+  "← → to move · OK to drop · Back to cancel": "← → para mover · OK para soltar · Voltar para cancelar",
+  "TV Launcher Universal Search": "Busca Universal TV Launcher"
 }

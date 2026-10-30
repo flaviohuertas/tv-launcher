@@ -57,7 +57,6 @@
   "Fog": "Mlha",
   "For You": "Pro vás",
   "Forecast": "Předpověď",
-  "Free My TV Universal Search": "Free My TV Universal Search",
   "Free My TV is on: new home screen and screensaver, {n} apps turned off.": "Free My TV je zapnuté: nová plocha a spořič, vypnuté aplikace: {n}.",
   "Free My TV {version} is ready: Home Settings > Updates.": "Free My TV {version} je připraveno: Nastavení plochy > Aktualizace.",
   "Free My TV's home screen crashed 3 times in a row; I switched back to the original one.": "Plocha Free My TV třikrát po sobě spadla; vrácena původní.",
@@ -376,5 +375,6 @@
   "{on} of {total}": "{on} z {total}",
   "{time} left": "zbývá {time}",
   "{version} is out: build it again": "Vyšla verze {version}: sestavte ji znovu",
-  "← → to move · OK to drop · Back to cancel": "← → přesunout · OK umístit · Zpět zrušit"
+  "← → to move · OK to drop · Back to cancel": "← → přesunout · OK umístit · Zpět zrušit",
+  "TV Launcher Universal Search": "TV Launcher Universal Search"
 }
