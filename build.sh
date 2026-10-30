@@ -155,7 +155,7 @@ if [ -n "${FREEMYTV_KEYSTORE:-}" ]; then
 else
   if [ ! -f freemytv.keystore ]; then
     "$KEYTOOL" -genkeypair -keystore freemytv.keystore -alias freemytv -keyalg RSA -keysize 2048 -validity 20000 \
-      -storepass freemytv -keypass freemytv -dname "CN=Free My TV" >/dev/null 2>&1
+      -storepass freemytv -keypass freemytv -dname "CN=TV Launcher" >/dev/null 2>&1
   fi
   "$BT/apksigner$BAT" sign --ks freemytv.keystore --ks-pass pass:freemytv --key-pass pass:freemytv --out FreeMyTV.apk out/aligned.apk
 fi

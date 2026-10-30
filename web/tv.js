@@ -43,7 +43,7 @@ var TV = (function () {
     bridge.call(uri, JSON.stringify(params || {}));
   }
 
-  // LG's own screensaver asks every subscribed app first. While Free My TV is on screen and its own screensaver will
+  // LG's own screensaver asks every subscribed app first. While TV Launcher is on screen and its own screensaver will
   // take over (`hold`, from home.js), it says no; otherwise, and in the background, the TV's runs as before.
   var saverBridge = null;
 

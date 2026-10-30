@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lists an LG TV's apps from your computer, for TVs that won't list them to Free My TV itself.
+"""Lists an LG TV's apps from your computer, for TVs that won't list them to TV Launcher itself.
 
     python3 webos/apps.py 192.168.1.50     # then python3 webos/build.py and python3 webos/install.py 192.168.1.50
 

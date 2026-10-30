@@ -161,7 +161,7 @@ if not os.path.exists("freemytv.keystore"):
     subprocess.run([
         keytool, "-genkeypair", "-keystore", "freemytv.keystore", "-alias", "freemytv",
         "-keyalg", "RSA", "-keysize", "2048", "-validity", "20000",
-        "-storepass", "freemytv", "-keypass", "freemytv", "-dname", "CN=Free My TV"
+        "-storepass", "freemytv", "-keypass", "freemytv", "-dname", "CN=TV Launcher"
     ], check=True)
 
 subprocess.run([

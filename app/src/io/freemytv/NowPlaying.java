@@ -99,7 +99,7 @@ public class NowPlaying extends NotificationListenerService {
                 on = true;
                 onActiveSessionsChanged(m.getActiveSessions(component(context)));
             } catch (SecurityException e) {
-                // On, but not allowed (it was on when Original or the watchdog took it back): asked once, as Free My TV
+                // On, but not allowed (it was on when Original or the watchdog took it back): asked once, as TV Launcher
                 // mode's switch itself never allows it. A TV that refused it shows the row unavailable instead.
                 if (!asked && Capabilities.adb(context) && !Capabilities.refused(context, Capabilities.LISTENER)) {
                     asked = true;

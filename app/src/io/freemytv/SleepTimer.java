@@ -84,7 +84,7 @@ final class SleepTimer {
      * there (a Force stop takes it away), in :home.
      */
     static void check(Context c) {
-        if (minutesLeft(c) == 0 || !Capabilities.adb(c)) return;   // the timer needs Free My TV mode: its key is known
+        if (minutesLeft(c) == 0 || !Capabilities.adb(c)) return;   // the timer needs TV Launcher mode: its key is known
         long from = Prefs.sleepFrom();   // 0: set by a build that didn't keep it
         Context app = c.getApplicationContext();
         new Thread(() -> {

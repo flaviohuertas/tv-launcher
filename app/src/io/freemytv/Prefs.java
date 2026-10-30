@@ -17,7 +17,7 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Settings changed on the TV itself (Free My TV > Settings). config.properties only gives the first
+ * Settings changed on the TV itself (TV Launcher > Settings). config.properties only gives the first
  * values; anything the user changes here wins. Read from the :home process (home screen, screensaver, settings).
  */
 final class Prefs {

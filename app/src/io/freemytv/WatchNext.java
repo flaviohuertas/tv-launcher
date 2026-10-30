@@ -328,7 +328,7 @@ final class WatchNext {
 
     /**
      * The apps that can feed Continue Watching (Settings, off the main thread): those allowed to write Android TV's
-     * lists, plus any publishing right now. As {package, name}, sorted by name, without Free My TV.
+     * lists, plus any publishing right now. As {package, name}, sorted by name, without TV Launcher.
      */
     static List<String[]> sources(Context c) {
         Set<String> pkgs = new HashSet<>();

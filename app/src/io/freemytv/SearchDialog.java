@@ -48,7 +48,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Universal Search for Free My TV: Option B Split-Screen UX/UI (40/60) with
+ * Universal Search for TV Launcher: Option B Split-Screen UX/UI (40/60) with
  * Active Filtering Chips (Em alta, Filmes, Séries), Rich Results with Posters & IMDb,
  * and Full Dynamic Synopsis Panel with 1-Click Launch. Exclusively for Movies & Series.
  */
@@ -783,7 +783,7 @@ final class SearchDialog {
             HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
             conn.setConnectTimeout(4000);
             conn.setReadTimeout(6000);
-            conn.setRequestProperty("User-Agent", "FreeMyTV/1.0");
+            conn.setRequestProperty("User-Agent", "TVLauncher/1.0");
             if (conn.getResponseCode() == 200) {
                 try (InputStream in = conn.getInputStream()) {
                     BitmapFactory.Options opts = new BitmapFactory.Options();
@@ -825,7 +825,7 @@ final class SearchDialog {
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(10000);
             conn.setRequestProperty("Accept", "application/json");
-            conn.setRequestProperty("User-Agent", "FreeMyTV/1.0");
+            conn.setRequestProperty("User-Agent", "TVLauncher/1.0");
 
             if (conn.getResponseCode() == 200) {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();

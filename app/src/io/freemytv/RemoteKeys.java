@@ -20,12 +20,12 @@ import android.view.KeyEvent;
  * On Xiaomi TVs whose remote has no Home button, its Mi button is BUTTON_4, a global key that Xiaomi's GlobalKeyReceiver
  * (partnercustomizer) turns into PatchWall. The filter sees it first, and by default it opens the home screen.
  * On Xiaomi TVs the YouTube button is ours too: BUTTON_3, a global key for the stock home screen (launcherx), which
- * Free My TV turns off. So is the PatchWall button (BUTTON_5, which that receiver would open PatchWall with); Netflix
+ * TV Launcher turns off. So is the PatchWall button (BUTTON_5, which that receiver would open PatchWall with); Netflix
  * goes to the receiver, which stays on. Their remote sends one press as a burst of presses: the app opens once.
  * On Xiaomi TVs sold in Russia, the Okko, VK, Rutube, KION, Wink and IVI buttons are global keys too, for Xiaomi's
  * hot-key receiver (partnercustomizer's GlobalKeyReceiver).
  * On Hisense TVs, the Prime Video, YouTube, Disney+, All Apps, Settings (gear) and profile buttons go to Google TV's
- * home app, which Free My TV mode turns off: without the filter they do nothing. Netflix stays with the system.
+ * home app, which TV Launcher mode turns off: without the filter they do nothing. Netflix stays with the system.
  */
 final class RemoteKeys {
     private RemoteKeys() {}
